@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    env_file: 
+      - ./.env
+      - ./.env.db
+    volumes: 
+      - "./static:/app/static"
+      - "./media:/app/media"
+    restart: always
+    command: "sh /app/entrypoint.sh"
+    ports:
+      - 8454:8000
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    env_file: ./.env.db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  celery_worker:
+    build: .
+    command: "sh celery/worker/entrypoint.sh"
+    env_file: 
+      - ./.env
+      - ./.env.db
+    volumes: 
+      - "./static:/app/static"
+      - "./media:/app/media"
+    depends_on:
+      - db
+
+  redis:
+    image: redis
+
+volumes:
+  db_data: 

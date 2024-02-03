@@ -1,4 +1,3 @@
-import os
 import re
 
 import charset_normalizer
@@ -48,12 +47,12 @@ def test_process_image_file_task():
         result = process_file.apply((file.pk, ))
         processed_file = File.objects.get(id=file.pk).file
 
-        assert result.get() is True
-        assert result.successful() is True
-        assert re.fullmatch(UUID_REGEX, processed_file.name) is not None
-        assert magic.from_file(processed_file.path, mime=True) == "image/jpeg"
+    assert result.get() is True
+    assert result.successful() is True
+    assert re.fullmatch(UUID_REGEX, processed_file.name) is not None
+    assert magic.from_file(processed_file.path, mime=True) == "image/jpeg"
 
-        processed_file.delete()
+    processed_file.delete()
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
@@ -72,9 +71,9 @@ def test_process_text_file_task():
             guess = charset_normalizer.detect(data.read(10000))
             guessed_encoding = guess["encoding"]
 
-        assert result.get() is True
-        assert result.successful() is True
-        assert re.fullmatch(UUID_REGEX, processed_file.name) is not None
-        assert guessed_encoding.lower() == "utf-32"
+    assert result.get() is True
+    assert result.successful() is True
+    assert re.fullmatch(UUID_REGEX, processed_file.name) is not None
+    assert guessed_encoding.lower() == "utf-32"
 
-        processed_file.delete()
+    processed_file.delete()

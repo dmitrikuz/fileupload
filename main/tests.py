@@ -10,7 +10,7 @@ from django.urls import reverse
 from main.models import File
 from main.tasks import process_file
 
-TEST_DATA_FOLDER = settings.BASE_DIR / "main/test_data"
+TEST_DATA_DIR = settings.BASE_DIR / "main/test_data"
 UUID_REGEX = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}\\..*$"
 
 
@@ -25,7 +25,7 @@ def test_files_list_endpoint(client: Client):
 def test_upload_file_endpoint(client: Client):
     url = reverse("upload")
     test_filename = "text.txt"
-    test_path = TEST_DATA_FOLDER / test_filename
+    test_path = TEST_DATA_DIR / test_filename
 
     with open(test_path) as file:
         response = client.post(url, data={"file": file})
@@ -39,7 +39,7 @@ def test_upload_file_endpoint(client: Client):
 @pytest.mark.django_db
 def test_process_image_file_task():
     test_filename = "image.png"
-    test_path = TEST_DATA_FOLDER / test_filename
+    test_path = TEST_DATA_DIR / test_filename
 
     with open(test_path, "rb") as test_file:
         file = File.objects.create()
@@ -59,7 +59,7 @@ def test_process_image_file_task():
 @pytest.mark.django_db
 def test_process_text_file_task():
     test_filename = "text.txt"
-    test_path = TEST_DATA_FOLDER / test_filename
+    test_path = TEST_DATA_DIR / test_filename
 
     with open(test_path) as test_file:
         file = File.objects.create()

@@ -8,6 +8,7 @@ from PIL import Image
 
 from celery import shared_task
 
+from .exceptions import ProcessingException
 from .models import File
 
 
@@ -15,36 +16,40 @@ from .models import File
 def process_file(id) -> bool:
 
     file = File.objects.get(id=id)
-    readable_file = file.file
+    original_file = file.file
+    processed_file = original_file
 
-    root, format = os.path.splitext(readable_file.path)
+    root, format = os.path.splitext(original_file.path)
     old_filename = root + format
 
-    mime_type = magic.from_file(old_filename, mime=True)
+    try:
+        buffer = io.BytesIO()
+        mime_type = magic.from_file(old_filename, mime=True)
 
-    with readable_file.open() as f:
-        buffer = io.BytesIO(f.read())
+        if mime_type.split("/")[0] == "image":
+            with Image.open(old_filename) as img:
+                img = img.convert("RGB")
+                img.save(buffer, format="JPEG")
+                format = ".jpg"
 
-    if mime_type.split("/")[0] == "image":
-        with Image.open(old_filename) as img:
-            img = img.convert("RGB")
-            buffer.truncate(0)
-            img.save(buffer, format="JPEG")
-            format = ".jpg"
+        elif mime_type.split("/")[0] == "text":
+            with original_file.open() as f:
+                string = f.read().decode("utf-8")
+                buffer.write(string.encode("utf-32"))
 
-    elif mime_type.split("/")[0] == "text":
-        with readable_file.open() as f:
-            string = f.read().decode("utf-8")
-            buffer.truncate(0)
-            buffer.write(string.encode("utf-32"))
+        if (content := buffer.getvalue()) is not None:
+            processed_file = ContentFile(content)
 
-    new_filename = str(uuid4()) + format
+        new_filename = str(uuid4()) + format
 
-    with readable_file.open() as rf:
-        rf.delete()
-        rf.save(new_filename, ContentFile(buffer.getvalue()))
+        original_file.delete()
+        original_file.save(new_filename, processed_file)
+
         file.processed = True
+        buffer.close()
 
-    buffer.close()
+    except Exception as e:
+        raise ProcessingException(e)
+
     file.save()
     return file.processed

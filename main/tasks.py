@@ -13,7 +13,7 @@ from .models import File
 
 
 @shared_task
-def process_file(id) -> bool:
+def process_file(id: int) -> bool:
 
     file = File.objects.get(id=id)
     original_file = file.file
@@ -37,12 +37,12 @@ def process_file(id) -> bool:
                 string = f.read().decode("utf-8")
                 buffer.write(string.encode("utf-32"))
 
-        if (content := buffer.getvalue()) is not None:
+        if content := buffer.getvalue():
             processed_file = ContentFile(content)
+            original_file.delete()
 
         new_filename = str(uuid4()) + format
 
-        original_file.delete()
         original_file.save(new_filename, processed_file)
 
         file.processed = True

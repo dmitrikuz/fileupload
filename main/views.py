@@ -23,3 +23,8 @@ class FileViewSet(ModelViewSet):
         if self.action == "list":
             return self.queryset.order_by("uploaded_at")
         return super().get_queryset()
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UploadFileSerializer
+        return super().get_serializer_class()

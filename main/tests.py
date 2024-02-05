@@ -4,7 +4,6 @@ import charset_normalizer
 import magic
 import pytest
 from django.conf import settings
-from django.core.files.base import File as DjangoFile
 from django.test import Client, override_settings
 from django.urls import reverse
 

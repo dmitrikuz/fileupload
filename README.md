@@ -17,3 +17,7 @@ docker compose exec app pytest
 - Оценка нагрузки в RPS
 
 Необходимо провести нагрузочное тестирование
+
+### Ендпоинты:
+- /api/upload
+- /api/files
